@@ -509,24 +509,56 @@ function extractCertBodyFromTitle(
   title: string
 ): Array<{ name: string; code?: string }> {
   const certBodies: Array<{ name: string; code?: string }> = [];
+  const titleUpper = title.toUpperCase();
 
-  // 일반적인 인증기관 이름 패턴
+  // 주요 국제 ISO 인증기관 (대소문자 구분 없이 검색)
   const certBodyPatterns = [
-    "한국표준협회",
-    "KSA",
-    "로이드",
-    "LRQA",
-    "DQS",
-    "TUV",
-    "DNV",
-    "BV",
-    "ABS",
-    "RINA",
+    // 한국 인증기관
+    { pattern: "한국표준협회", name: "한국표준협회 (KSA)", code: "KSA" },
+    { pattern: "KSA", name: "한국표준협회 (KSA)", code: "KSA" },
+    { pattern: "한국품질재단", name: "한국품질재단 (KFQ)", code: "KFQ" },
+    { pattern: "KFQ", name: "한국품질재단 (KFQ)", code: "KFQ" },
+    { pattern: "KTL", name: "한국산업기술시험원 (KTL)", code: "KTL" },
+    
+    // 글로벌 주요 인증기관
+    { pattern: "TUV", name: "TÜV", code: "TUV" },
+    { pattern: "TÜV", name: "TÜV", code: "TUV" },
+    { pattern: "SGS", name: "SGS", code: "SGS" },
+    { pattern: "DNV", name: "DNV", code: "DNV" },
+    { pattern: "DNV GL", name: "DNV GL", code: "DNV" },
+    { pattern: "BSI", name: "BSI", code: "BSI" },
+    { pattern: "BUREAU VERITAS", name: "Bureau Veritas", code: "BV" },
+    { pattern: "BUREAU VÉRITAS", name: "Bureau Veritas", code: "BV" },
+    { pattern: "로이드", name: "Lloyd's Register (LRQA)", code: "LRQA" },
+    { pattern: "LRQA", name: "Lloyd's Register (LRQA)", code: "LRQA" },
+    { pattern: "LLOYD", name: "Lloyd's Register (LRQA)", code: "LRQA" },
+    { pattern: "INTERTEK", name: "Intertek", code: "Intertek" },
+    { pattern: "UL", name: "UL (Underwriters Laboratories)", code: "UL" },
+    { pattern: "UNDERWRITERS", name: "UL (Underwriters Laboratories)", code: "UL" },
+    { pattern: "ABS", name: "ABS Quality Evaluations", code: "ABS" },
+    { pattern: "RINA", name: "RINA", code: "RINA" },
+    { pattern: "DQS", name: "DQS", code: "DQS" },
+    { pattern: "AFNOR", name: "AFNOR", code: "AFNOR" },
+    { pattern: "DEKRA", name: "DEKRA", code: "DEKRA" },
+    { pattern: "SAI GLOBAL", name: "SAI Global", code: "SAI" },
+    { pattern: "NQA", name: "NQA", code: "NQA" },
+    { pattern: "UKAS", name: "UKAS", code: "UKAS" },
+    { pattern: "ANAB", name: "ANAB", code: "ANAB" },
+    { pattern: "IQNet", name: "IQNet", code: "IQNet" },
+    { pattern: "JQA", name: "JQA (Japan)", code: "JQA" },
+    { pattern: "CQC", name: "CQC (China)", code: "CQC" },
+    { pattern: "KEMA", name: "KEMA", code: "KEMA" },
+    { pattern: "PERRY JOHNSON", name: "Perry Johnson", code: "PJR" },
+    { pattern: "NEMKO", name: "Nemko", code: "Nemko" },
   ];
 
-  for (const pattern of certBodyPatterns) {
-    if (title.includes(pattern)) {
-      certBodies.push({ name: pattern });
+  const found = new Set<string>(); // 중복 방지
+
+  for (const { pattern, name, code } of certBodyPatterns) {
+    const patternUpper = pattern.toUpperCase();
+    if (titleUpper.includes(patternUpper) && !found.has(code)) {
+      certBodies.push({ name, code });
+      found.add(code);
     }
   }
 
@@ -539,22 +571,7 @@ function extractCertBodyFromTitle(
 function extractCertBodyFromText(
   text: string
 ): Array<{ name: string; code?: string }> {
-  const certBodies: Array<{ name: string; code?: string }> = [];
-
-  const certBodyPatterns = [
-    { name: "한국표준협회", code: "KSA" },
-    { name: "로이드", code: "LRQA" },
-    { name: "DQS", code: "DQS" },
-    { name: "TUV", code: "TUV" },
-    { name: "DNV", code: "DNV" },
-  ];
-
-  for (const pattern of certBodyPatterns) {
-    if (text.includes(pattern.name) || text.includes(pattern.code)) {
-      certBodies.push(pattern);
-    }
-  }
-
-  return certBodies;
+  // extractCertBodyFromTitle와 동일한 로직 사용
+  return extractCertBodyFromTitle(text);
 }
 
