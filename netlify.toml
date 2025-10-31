@@ -2,10 +2,10 @@
 # ISO 인증정보 검색 시스템
 
 [build]
-  # 서버리스 함수만 배포 (빌드 명령 없음)
-  command = "echo 'Functions only deployment'"
-  # 정적 파일 없음 (Functions only)
-  publish = "public"
+  # 프론트엔드 + 서버리스 함수 배포
+  command = "npm run build"
+  # Vite 빌드 결과물
+  publish = "dist"
   # Node.js 버전
   node_version = "18"
 
