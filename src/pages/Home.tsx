@@ -68,6 +68,17 @@ export default function Home() {
   const results = searchQuery_val.data?.results as CertificationResult[] | undefined;
   const isLoading = searchQuery_val.isLoading;
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[Home] State:', {
+      searchQuery,
+      searchQueryLength: searchQuery.length,
+      trimmed: searchQuery.trim(),
+      isLoading,
+      shouldSearch
+    });
+  }, [searchQuery, isLoading, shouldSearch]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "valid":
@@ -159,7 +170,7 @@ export default function Home() {
                 />
                 <Button
                   type="submit"
-                  disabled={isLoading || !searchQuery.trim()}
+                  disabled={!searchQuery.trim() || (shouldSearch && isLoading)}
                   className="gap-2"
                 >
                   <Search className="w-4 h-4" />
