@@ -85,6 +85,7 @@ export async function scrapeKSA(companyName: string): Promise<ScrapedCertificati
 
 /**
  * Google 뉴스에서 회사 ISO 인증 정보 검색
+ * 한글/영어 검색어 자동 선택
  */
 export async function scrapeGoogleNews(
   companyName: string
@@ -92,8 +93,13 @@ export async function scrapeGoogleNews(
   try {
     const results: ScrapedCertification[] = [];
 
-    const searchQuery = encodeURIComponent(`${companyName} ISO 인증`);
-    const newsUrl = `https://news.google.com/search?q=${searchQuery}&hl=ko`;
+    // 한글이 포함되어 있으면 한국어 검색, 아니면 영어 검색
+    const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(companyName);
+    const searchTerm = hasKorean ? "ISO 인증" : "ISO certification";
+    const language = hasKorean ? "ko" : "en";
+    
+    const searchQuery = encodeURIComponent(`${companyName} ${searchTerm}`);
+    const newsUrl = `https://news.google.com/search?q=${searchQuery}&hl=${language}`;
 
     const response = await axios.get(newsUrl, {
       headers: {
@@ -148,7 +154,7 @@ export async function scrapeGoogleNews(
       }
     });
 
-    console.log(`[Google News Scraper] Found ${results.length} news articles`);
+    console.log(`[Google News Scraper] Found ${results.length} news articles (${language})`);
     return results;
   } catch (error) {
     console.error(
