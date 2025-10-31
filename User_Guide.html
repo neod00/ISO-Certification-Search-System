@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Guide - ISO Certification Search System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #111827;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 60px 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section h2 {
+            font-size: 2em;
+            color: #111827;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #00d4aa;
+            font-weight: 700;
+        }
+
+        .section h3 {
+            font-size: 1.5em;
+            color: #111827;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+        }
+
+        .step-card {
+            background: white;
+            border-left: 4px solid #00d4aa;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #00d4aa;
+            color: #111827;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: 700;
+            margin-right: 15px;
+            font-size: 1.1em;
+        }
+
+        .step-card h4 {
+            display: inline-block;
+            font-size: 1.2em;
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+        .step-card p {
+            color: #4b5563;
+            margin-left: 50px;
+            line-height: 1.8;
+        }
+
+        .feature-box {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #6366f1;
+        }
+
+        .feature-box h4 {
+            color: #6366f1;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .tip-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .tip-box strong {
+            color: #f59e0b;
+        }
+
+        .warning-box {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .warning-box strong {
+            color: #dc2626;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.8;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #dc2626;
+        }
+
+        .footer {
+            background: #111827;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 40px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section h2 {
+                font-size: 1.6em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 User Guide</h1>
+            <p>ISO Certification Information Search System</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>🎯 Getting Started</h2>
+                
+                <div class="step-card">
+                    <span class="step-number">1</span>
+                    <h4>Access the Platform</h4>
+                    <p>
+                        Visit <a href="https://iso-certification-search-system.netlify.app/" target="_blank" style="color: #00d4aa; text-decoration: none; font-weight: 600;">https://iso-certification-search-system.netlify.app/</a> 
+                        to access the ISO Certification Search System.
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <span class="step-number">2</span>
+                    <h4>Language Selection</h4>
+                    <p>
+                        Click the language toggle button (KO/EN) in the top-right corner to switch between Korean and English interface. 
+                        The system automatically detects the language of your search query.
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <span class="step-number">3</span>
+                    <h4>Enter Company Name</h4>
+                    <p>
+                        Type the company name in the search box. You can use either Korean or English company names:
+                        <br>• Korean: "삼성전자", "LG전자", "SK하이닉스"
+                        <br>• English: "Samsung Electronics", "LG Electronics", "SK Hynix"
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <span class="step-number">4</span>
+                    <h4>Click Search</h4>
+                    <p>
+                        Click the "Search" button (or press Enter) to start searching. The system will display "Searching..." 
+                        while processing your request.
+                    </p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 Understanding Search Results</h2>
+
+                <div class="feature-box">
+                    <h4>Company Name</h4>
+                    <p>The name of the company you searched for, as it appears in the search results.</p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>ISO Certification Types</h4>
+                    <p>
+                        Displays all ISO certification standards found for the company, such as:
+                        <br>• ISO 9001:2015 (Quality Management)
+                        <br>• ISO 14001:2015 (Environmental Management)
+                        <br>• ISO 45001:2018 (Occupational Health & Safety)
+                        <br>• ISO 27001 (Information Security)
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Certification Bodies</h4>
+                    <p>
+                        Lists the certification bodies that issued the certifications, such as:
+                        <br>• KSA (Korean Standards Association)
+                        <br>• TÜV (TÜV Rheinland/Süed)
+                        <br>• LRQA (Lloyd's Register Quality Assurance)
+                        <br>• SGS, BSI, DNV, and others
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Certification Dates</h4>
+                    <p>
+                        <strong>Issued Date:</strong> When the certification was first issued
+                        <br><strong>Expiry Date:</strong> When the certification expires (if available)
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Status</h4>
+                    <p>
+                        <strong>Valid:</strong> Certification is currently active
+                        <br><strong>Expired:</strong> Certification has expired
+                        <br><strong>Unknown:</strong> Status could not be determined from available sources
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Information Sources</h4>
+                    <p>
+                        Each result includes clickable links showing where the information was obtained:
+                        <br>• Google News
+                        <br>• Naver News
+                        <br>• Company Website
+                        <br>• Official Certification Databases
+                    </p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>💡 Tips for Better Search Results</h2>
+
+                <div class="tip-box">
+                    <strong>💡 Tip 1:</strong> Use the exact company name as it appears in official documents for best results.
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tip 2:</strong> If searching in English doesn't return results, try the Korean company name (and vice versa).
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tip 3:</strong> The system improves results over time. If you don't get complete information on first search, 
+                    wait a few minutes and search again. The background AI analysis will enhance the cache.
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tip 4:</strong> Click on source links to verify information directly from the original source.
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tip 5:</strong> Use dark mode (moon icon) for better viewing experience during extended searches.
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚠️ Important Limitations</h2>
+
+                <div class="warning-box">
+                    <strong>⚠️ Early Version Notice:</strong> This is an initial version (v0.1) of the platform. 
+                    As such, you may encounter the following limitations:
+                </div>
+
+                <ul>
+                    <li><strong>No Results Found:</strong> Some companies may not return search results if information 
+                    is not available in the public sources we scrape.</li>
+                    <li><strong>Incomplete Information:</strong> Certification details may be incomplete or missing 
+                    if the information is not publicly available in news articles or official databases.</li>
+                    <li><strong>Incorrect Data:</strong> Due to the nature of AI-powered extraction, some information 
+                    may be incorrectly parsed from news articles. Always verify critical information using the source links.</li>
+                    <li><strong>Language Detection:</strong> While the system attempts automatic language detection, 
+                    mixed-language company names may not always be handled correctly.</li>
+                    <li><strong>Real-time Updates:</strong> The system uses cached data (24 hours). Recent certification 
+                    changes may not appear immediately.</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>🔧 Troubleshooting</h2>
+
+                <div class="step-card">
+                    <h4>Q: No results appear after searching</h4>
+                    <p>
+                        <strong>A:</strong> This may occur if:
+                        <br>• The company name is misspelled or not in our database
+                        <br>• No public information is available about the company's ISO certifications
+                        <br>• All data sources failed to return information
+                        <br><strong>Solution:</strong> Try alternative company name variations, or verify the company has ISO certifications 
+                        that are publicly reported.
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <h4>Q: Search is taking too long</h4>
+                    <p>
+                        <strong>A:</strong> First-time searches may take 5-10 seconds as the system scrapes multiple sources. 
+                        Subsequent searches for the same company will be faster (3-5 seconds) due to caching.
+                        <br><strong>Solution:</strong> Wait for the search to complete. If it exceeds 30 seconds, refresh the page and try again.
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <h4>Q: Certification body information is missing</h4>
+                    <p>
+                        <strong>A:</strong> Certification bodies are extracted from news article bodies using AI. 
+                        If this information is not mentioned in the articles, it will not appear.
+                        <br><strong>Solution:</strong> Wait a few minutes and search again. Background AI analysis may find additional information 
+                        and update the cache.
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <h4>Q: Dates seem incorrect</h4>
+                    <p>
+                        <strong>A:</strong> Dates are extracted from various sources and may have formatting inconsistencies.
+                        <br><strong>Solution:</strong> Click on source links to verify dates from the original articles or websites.
+                    </p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🌐 Features</h2>
+
+                <h3>Language Toggle</h3>
+                <p>
+                    Switch between Korean and English interface instantly. The search query language is automatically detected 
+                    and appropriate sources are searched.
+                </p>
+
+                <h3>Dark Mode</h3>
+                <p>
+                    Toggle dark mode using the moon/sun icon in the header. Your preference is saved in the browser 
+                    for future visits.
+                </p>
+
+                <h3>Source Attribution</h3>
+                <p>
+                    All search results include clickable source links so you can verify information from the original sources. 
+                    This ensures transparency and allows you to cross-reference data.
+                </p>
+
+                <h3>Real-time Status</h3>
+                <p>
+                    The system displays the current status of certifications (Valid/Expired/Unknown) based on the 
+                    expiry dates found in the sources.
+                </p>
+            </div>
+
+            <div class="section">
+                <h2>📞 Support & Feedback</h2>
+                <p>
+                    This is an early version of the platform. If you encounter issues or have suggestions for improvement, 
+                    please refer to the GitHub repository for reporting issues:
+                </p>
+                <p style="margin-top: 15px;">
+                    <a href="https://github.com/neod00/ISO-Certification-Search-System" target="_blank" 
+                       style="color: #00d4aa; text-decoration: none; font-weight: 600;">
+                        GitHub Repository
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p style="font-size: 1.1em; margin-bottom: 10px;">ISO Certification Information Search System</p>
+            <p style="opacity: 0.8;">User Guide v1.0 | © 2025</p>
+        </div>
+    </div>
+</body>
+</html>
+
