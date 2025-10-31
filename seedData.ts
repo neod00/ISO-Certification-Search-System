@@ -3,6 +3,7 @@ import { isoCertifications } from "../drizzle/schema";
 
 export interface SampleCertification {
   companyName: string;
+  companyNameEn?: string;
   certificationTypes: string[];
   certificationBodies: string[];
   issuedDate: string;
@@ -18,6 +19,7 @@ export interface SampleCertification {
 const sampleData: SampleCertification[] = [
   {
     companyName: "일진전기",
+    companyNameEn: "ILJIN Electric",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015", "ISO 45001:2018"],
     certificationBodies: ["한국표준협회(KSA)", "로이드(LRQA)"],
     issuedDate: "2021-03-15",
@@ -36,6 +38,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "삼성전자",
+    companyNameEn: "Samsung Electronics",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015", "ISO 50001:2018"],
     certificationBodies: ["한국표준협회(KSA)", "DQS"],
     issuedDate: "2022-06-10",
@@ -54,6 +57,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "LG전자",
+    companyNameEn: "LG Electronics",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015", "ISO 45001:2018"],
     certificationBodies: ["한국표준협회(KSA)", "로이드(LRQA)"],
     issuedDate: "2021-09-20",
@@ -72,6 +76,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "현대자동차",
+    companyNameEn: "Hyundai Motor Company",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015", "ISO 45001:2018"],
     certificationBodies: ["한국표준협회(KSA)", "DQS"],
     issuedDate: "2023-01-15",
@@ -90,6 +95,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "SK하이닉스",
+    companyNameEn: "SK hynix",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015"],
     certificationBodies: ["한국표준협회(KSA)", "로이드(LRQA)"],
     issuedDate: "2022-04-10",
@@ -108,6 +114,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "포스코",
+    companyNameEn: "POSCO",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015", "ISO 45001:2018"],
     certificationBodies: ["한국표준협회(KSA)", "DQS"],
     issuedDate: "2021-11-05",
@@ -126,6 +133,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "네이버",
+    companyNameEn: "NAVER",
     certificationTypes: ["ISO 27001:2013", "ISO 9001:2015"],
     certificationBodies: ["한국표준협회(KSA)", "로이드(LRQA)"],
     issuedDate: "2022-08-20",
@@ -144,6 +152,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "카카오",
+    companyNameEn: "Kakao",
     certificationTypes: ["ISO 27001:2013", "ISO 9001:2015"],
     certificationBodies: ["한국표준협회(KSA)", "DQS"],
     issuedDate: "2023-02-10",
@@ -162,6 +171,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "두산중공업",
+    companyNameEn: "Doosan Heavy Industries",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015", "ISO 45001:2018"],
     certificationBodies: ["한국표준협회(KSA)", "로이드(LRQA)"],
     issuedDate: "2021-07-15",
@@ -180,6 +190,7 @@ const sampleData: SampleCertification[] = [
   },
   {
     companyName: "GS칼텍스",
+    companyNameEn: "GS Caltex",
     certificationTypes: ["ISO 9001:2015", "ISO 14001:2015", "ISO 45001:2018"],
     certificationBodies: ["한국표준협회(KSA)", "DQS"],
     issuedDate: "2022-05-20",
@@ -217,6 +228,7 @@ export async function seedDatabase() {
 
       await db.insert(isoCertifications).values({
         companyName: sample.companyName,
+        companyNameEn: sample.companyNameEn,
         certificationTypes: certTypesJson,
         certificationBodies: certBodiesJson,
         issuedDate: sample.issuedDate,
@@ -225,7 +237,7 @@ export async function seedDatabase() {
         sources: sourcesJson,
       });
 
-      console.log(`[Seed] Added: ${sample.companyName}`);
+      console.log(`[Seed] Added: ${sample.companyName} (${sample.companyNameEn || 'N/A'})`);
     }
 
     console.log("[Seed] Database seeding completed successfully!");
