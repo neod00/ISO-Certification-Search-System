@@ -46,7 +46,7 @@ export default function Home() {
 
   const searchQuery_val = trpc.iso.search.useQuery(
     { companyName: searchQuery },
-    { enabled: shouldSearch && searchQuery.trim().length > 0 }
+    { enabled: false }
   );
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -55,9 +55,10 @@ export default function Home() {
 
     setHasSearched(true);
     setShouldSearch(true);
+    searchQuery_val.refetch();
   };
 
-  // Reset shouldSearch after query completes
+  // Reset shouldSearch when loading completes
   useEffect(() => {
     if (!searchQuery_val.isLoading && shouldSearch) {
       setShouldSearch(false);
