@@ -159,7 +159,7 @@ export default function Home() {
                 />
                 <Button
                   type="submit"
-                  disabled={isLoading || !searchQuery.trim() || shouldSearch}
+                  disabled={isLoading || !searchQuery.trim()}
                   className="gap-2"
                 >
                   <Search className="w-4 h-4" />
