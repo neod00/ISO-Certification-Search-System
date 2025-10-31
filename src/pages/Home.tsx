@@ -121,10 +121,10 @@ export default function Home() {
             {/* Language and Theme Toggles */}
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 onClick={() => setLanguage(language === "ko" ? "en" : "ko")}
-                className="gap-2 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600"
+                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white border-none shadow-md"
               >
                 <Globe className="w-4 h-4" />
                 <span className="text-xs font-semibold">
@@ -132,10 +132,10 @@ export default function Home() {
                 </span>
               </Button>
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 onClick={toggleTheme}
-                className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-none shadow-md"
               >
                 {theme === "dark" ? (
                   <Sun className="w-4 h-4" />
