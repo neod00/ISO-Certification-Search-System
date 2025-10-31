@@ -2,10 +2,10 @@
 # ISO 인증정보 검색 시스템
 
 [build]
-  # 빌드 명령어
-  command = "npm run build"
-  # 정적 파일이 위치할 디렉토리
-  publish = "dist"
+  # 서버리스 함수만 배포 (빌드 명령 없음)
+  command = "echo 'Functions only deployment'"
+  # 정적 파일 없음 (Functions only)
+  publish = "public"
   # Node.js 버전
   node_version = "18"
 
