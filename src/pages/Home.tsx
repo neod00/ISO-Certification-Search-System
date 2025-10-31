@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,13 @@ export default function Home() {
     setHasSearched(true);
     setShouldSearch(true);
   };
+
+  // Reset shouldSearch after query completes
+  useEffect(() => {
+    if (!searchQuery_val.isLoading && shouldSearch) {
+      setShouldSearch(false);
+    }
+  }, [searchQuery_val.isLoading, shouldSearch]);
 
   const results = searchQuery_val.data?.results as CertificationResult[] | undefined;
   const isLoading = searchQuery_val.isLoading;
