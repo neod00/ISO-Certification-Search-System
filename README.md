@@ -10,9 +10,11 @@
 - **다국어 지원**: 한국어/영어 지원
 - **다크 모드**: 라이트/다크 테마 전환 지원
 
-## 🚀 Vercel 배포하기
+## 🚀 배포하기
 
-### 1. 프로젝트 준비
+### 방법 1: Netlify 배포 (추천 - 무료 플랜)
+
+#### 1. 프로젝트 준비
 
 ```bash
 # 저장소 클론
@@ -23,7 +25,51 @@ cd ISO-Certification-Search-System
 npm install
 ```
 
-### 2. Vercel CLI 설치 및 배포
+#### 2-A. Netlify CLI로 배포
+
+```bash
+# Netlify CLI 설치
+npm i -g netlify-cli
+
+# Netlify 로그인
+netlify login
+
+# 배포
+netlify deploy --prod
+```
+
+#### 2-B. Netlify 대시보드에서 배포
+
+1. [Netlify](https://app.netlify.com/) 로그인
+2. "Add new site" → "Import an existing project" 클릭
+3. GitHub 저장소 연결: `neod00/ISO-Certification-Search-System`
+4. 빌드 설정 (자동으로 `netlify.toml`에서 읽어옴)
+5. "Deploy site" 클릭
+
+#### 3. 환경 변수 설정
+
+Netlify 대시보드 → Site settings → Environment variables에서 설정:
+
+**필수 환경 변수:**
+- `DATABASE_URL`: MySQL 데이터베이스 연결 문자열
+  ```
+  mysql://username:password@host:3306/database
+  ```
+
+**선택 환경 변수:**
+- `LLM_API_KEY`: LLM 서비스 API 키 (OpenAI, Anthropic 등)
+
+#### 4. Netlify 최적화 설정
+
+- **함수 타임아웃**: 10초 (무료 플랜)
+- **캐싱 전략**: 첫 검색 후 DB 캐싱으로 빠른 응답
+- **타임아웃 최적화**: 웹 스크래핑 4초로 제한
+
+---
+
+### 방법 2: Vercel 배포
+
+#### 1. Vercel CLI 설치 및 배포
 
 ```bash
 # Vercel CLI 설치
@@ -36,27 +82,22 @@ vercel login
 vercel
 ```
 
-### 3. 환경 변수 설정
+#### 2. 환경 변수 설정
 
-Vercel 대시보드에서 다음 환경 변수를 설정하세요:
+Vercel 대시보드에서 다음 환경 변수를 설정:
 
-#### 필수 환경 변수
+- `DATABASE_URL`: MySQL 연결 문자열
+- `LLM_API_KEY`: LLM API 키 (선택)
 
-- `DATABASE_URL`: MySQL 데이터베이스 연결 문자열
-  ```
-  mysql://username:password@host:3306/database
-  ```
+> **참고**: Vercel은 무료 플랜에서 10초 제한, Pro 플랜($20/월)에서 60초 제한
 
-#### 선택 환경 변수
+---
 
-- `LLM_API_KEY`: LLM 서비스 API 키 (OpenAI, Anthropic 등)
-- `NODE_ENV`: `production` (자동 설정됨)
-
-### 4. 데이터베이스 설정
+### 공통: 데이터베이스 설정
 
 MySQL 데이터베이스가 필요합니다. 다음 서비스 중 하나를 사용하세요:
 
-- [PlanetScale](https://planetscale.com/) (추천)
+- [PlanetScale](https://planetscale.com/) (추천 - 무료 플랜)
 - [Railway](https://railway.app/)
 - [Supabase](https://supabase.com/)
 - AWS RDS
@@ -90,27 +131,35 @@ npm run db:seed
 - Cheerio
 
 ### 배포
+- Netlify (서버리스 - 추천)
 - Vercel (서버리스)
 
 ## 📁 프로젝트 구조
 
 ```
 ISO-Certification-Search-System/
-├── api/                    # Vercel 서버리스 함수
-│   └── [...trpc].ts        # tRPC API 핸들러
-├── drizzle/                # 데이터베이스 스키마 및 마이그레이션
+├── netlify/                   # Netlify 서버리스 함수
+│   └── functions/
+│       └── trpc.ts           # tRPC API 핸들러 (Netlify)
+├── api/                       # Vercel 서버리스 함수
+│   └── trpc/
+│       └── [trpc].ts         # tRPC API 핸들러 (Vercel)
+├── drizzle/                   # 데이터베이스 스키마 및 마이그레이션
 │   └── schema.ts
 ├── src/
-│   ├── components/         # React 컴포넌트
-│   ├── contexts/           # React Context (언어, 테마)
-│   ├── pages/              # 페이지 컴포넌트
-│   └── lib/                # 유틸리티 함수
+│   ├── components/            # React 컴포넌트
+│   ├── contexts/              # React Context (언어, 테마)
+│   ├── pages/                 # 페이지 컴포넌트
+│   └── lib/                   # 유틸리티 함수
 ├── server/
-│   ├── routers.ts          # tRPC 라우터
-│   ├── db.ts               # 데이터베이스 연결
-│   ├── isoSearch.ts        # ISO 검색 로직
-│   └── webScraper.ts       # 웹 스크래핑 모듈
-├── vercel.json             # Vercel 설정
+│   ├── routers.ts             # tRPC 라우터
+│   ├── db.ts                  # 데이터베이스 연결 (연결 풀링)
+│   ├── isoSearch.ts           # ISO 검색 로직
+│   └── webScraper.ts          # 웹 스크래핑 모듈
+├── netlify.toml               # Netlify 설정
+├── vercel.json                # Vercel 설정
+├── .gitignore
+├── .env.example               # 환경 변수 예시
 └── package.json
 ```
 
@@ -138,9 +187,12 @@ cp .env.example .env
 ## 📊 성능 최적화
 
 - **연결 풀링**: MySQL 연결 풀을 사용해 서버리스 환경에 최적화
-- **캐싱**: 검색 결과를 24시간 캐싱
-- **타임아웃 제어**: Vercel 실행 시간 제한에 맞춘 타임아웃 설정
+- **캐싱**: 검색 결과를 24시간 캐싱 (첫 검색 후 즉시 응답)
+- **타임아웃 제어**: 
+  - Netlify: 4초로 제한 (10초 함수 타임아웃)
+  - Vercel: 8초로 제한 (10초/60초 함수 타임아웃)
 - **병렬 처리**: 웹 스크래핑 및 LLM 검색을 병렬로 실행
+- **점진적 로딩**: 캐시 우선 전략으로 빠른 사용자 경험
 
 ## 📝 주요 API
 

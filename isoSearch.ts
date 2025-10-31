@@ -26,13 +26,21 @@ export interface CertificationInfo {
 // 캐시 설정
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24시간
 
-// Vercel 서버리스 환경에 최적화된 타임아웃
-// Vercel Free: 10초, Pro: 60초 제한을 고려
-const SCRAPING_TIMEOUT_MS = process.env.VERCEL 
-  ? (process.env.VERCEL_ENV === "production" ? 8000 : 4000) // 프로덕션에서 더 여유
+// 서버리스 환경에 최적화된 타임아웃
+// Netlify Free: 10초, Vercel Free: 10초, Pro: 60초 제한을 고려
+const SCRAPING_TIMEOUT_MS = process.env.NETLIFY 
+  ? 4000 // Netlify: 10초 제한이므로 여유를 두고 4초
+  : process.env.VERCEL 
+  ? (process.env.VERCEL_ENV === "production" ? 8000 : 4000) // Vercel 프로덕션에서 더 여유
   : 5000; // 로컬 개발 환경
 
 const MAX_PARALLEL_REQUESTS = 3; // 병렬 요청 제한
+
+console.log(`[ISO Search] Timeout configured: ${SCRAPING_TIMEOUT_MS}ms (Platform: ${
+  process.env.NETLIFY ? 'Netlify' : 
+  process.env.VERCEL ? 'Vercel' : 
+  'Local'
+})`);
 
 /**
  * 검색 결과를 캐시에서 먼저 확인
