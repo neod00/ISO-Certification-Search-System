@@ -21,7 +21,7 @@
     "cheerio": "^1.0.0",
     "drizzle-orm": "^0.36.4",
     "lucide-react": "^0.454.0",
-    "mysql2": "^3.11.5",
+    "postgres": "^3.4.4",
     "postcss": "^8.4.49",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

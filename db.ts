@@ -1,39 +1,34 @@
 import { eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { InsertUser, users, isoCertifications, searchCache, InsertIsoCertification } from "./drizzle/schema";
 import { ENV } from './_core/env';
 
-// Connection pool for serverless environments (Vercel)
-let pool: mysql.Pool | null = null;
+// PostgreSQL client for serverless environments
+let client: postgres.Sql | null = null;
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance with connection pooling for Vercel serverless
+// Lazily create the drizzle instance with PostgreSQL connection
 export async function getDb() {
   if (!process.env.DATABASE_URL) {
     console.warn("[Database] DATABASE_URL not set");
     return null;
   }
 
-  if (!pool) {
+  if (!client) {
     try {
-      // Create connection pool optimized for serverless
-      pool = mysql.createPool({
-        uri: process.env.DATABASE_URL,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
-        enableKeepAlive: true,
-        keepAliveInitialDelay: 0,
-        // Serverless-friendly settings
-        maxIdle: 10,
-        idleTimeout: 60000,
+      // Create PostgreSQL client optimized for serverless
+      client = postgres(process.env.DATABASE_URL, {
+        max: 10,
+        idle_timeout: 20,
+        connect_timeout: 10,
+        prepare: false, // Important for serverless
       });
-      _db = drizzle(pool);
-      console.log("[Database] Connection pool created successfully");
+      _db = drizzle(client);
+      console.log("[Database] PostgreSQL connection created successfully");
     } catch (error) {
-      console.warn("[Database] Failed to create pool:", error);
-      pool = null;
+      console.warn("[Database] Failed to create connection:", error);
+      client = null;
       _db = null;
       return null;
     }
@@ -92,7 +87,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -126,7 +122,7 @@ export async function searchISOCertifications(companyName: string) {
       .select()
       .from(isoCertifications)
       .where(
-        sql`LOWER(companyName) LIKE LOWER(${`%${companyName}%`})`
+        sql`LOWER("companyName") LIKE LOWER(${`%${companyName}%`})`
       )
       .orderBy(isoCertifications.lastUpdated);
 
@@ -151,7 +147,7 @@ export async function getCachedSearchResults(query: string) {
       .select()
       .from(searchCache)
       .where(
-        sql`searchQuery = ${query} AND expiresAt > NOW()`
+        sql`"searchQuery" = ${query} AND "expiresAt" > NOW()`
       )
       .limit(1);
 
@@ -182,7 +178,8 @@ export async function setCachedSearchResults(
         results: JSON.stringify(results),
         expiresAt,
       })
-      .onDuplicateKeyUpdate({
+      .onConflictDoUpdate({
+        target: searchCache.searchQuery,
         set: {
           results: JSON.stringify(results),
           expiresAt,

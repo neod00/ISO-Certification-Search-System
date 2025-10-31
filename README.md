@@ -51,9 +51,9 @@ netlify deploy --prod
 Netlify 대시보드 → Site settings → Environment variables에서 설정:
 
 **필수 환경 변수:**
-- `DATABASE_URL`: MySQL 데이터베이스 연결 문자열
+- `DATABASE_URL`: PostgreSQL 데이터베이스 연결 문자열 (Supabase)
   ```
-  mysql://username:password@host:3306/database
+  postgresql://postgres.xxx:[password]@xxx.supabase.com:6543/postgres
   ```
 
 **선택 환경 변수:**
@@ -86,7 +86,7 @@ vercel
 
 Vercel 대시보드에서 다음 환경 변수를 설정:
 
-- `DATABASE_URL`: MySQL 연결 문자열
+- `DATABASE_URL`: PostgreSQL 연결 문자열 (Supabase)
 - `LLM_API_KEY`: LLM API 키 (선택)
 
 > **참고**: Vercel은 무료 플랜에서 10초 제한, Pro 플랜($20/월)에서 60초 제한
@@ -95,22 +95,21 @@ Vercel 대시보드에서 다음 환경 변수를 설정:
 
 ### 공통: 데이터베이스 설정
 
-MySQL 데이터베이스가 필요합니다. 다음 서비스 중 하나를 사용하세요:
+PostgreSQL 데이터베이스가 필요합니다. **Supabase 사용을 권장합니다** (무료 플랜):
 
-- [PlanetScale](https://planetscale.com/) (추천 - 무료 플랜)
-- [Railway](https://railway.app/)
-- [Supabase](https://supabase.com/)
-- AWS RDS
+- [Supabase](https://supabase.com/) (추천 - 무료 플랜, PostgreSQL)
+- [Neon](https://neon.tech/) (무료 플랜, PostgreSQL)
+- [Railway](https://railway.app/) (PostgreSQL 지원)
+- AWS RDS PostgreSQL
 
 #### 데이터베이스 스키마 생성
 
-```bash
-# Drizzle 마이그레이션 실행
-npm run db:migrate
+**상세 가이드**: [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) 참조
 
-# 샘플 데이터 추가 (선택)
-npm run db:seed
-```
+간단 요약:
+1. Supabase에서 프로젝트 생성
+2. SQL Editor에서 테이블 생성 스크립트 실행 (SUPABASE_SETUP.md 참조)
+3. 연결 문자열을 Netlify 환경 변수에 추가
 
 ## 🛠 기술 스택
 
@@ -123,7 +122,7 @@ npm run db:seed
 ### 백엔드
 - tRPC
 - Drizzle ORM
-- MySQL
+- PostgreSQL (Supabase)
 - Node.js
 
 ### 웹 스크래핑
