@@ -1,7 +1,7 @@
 import { invokeLLM } from "./_core/llm";
 import { scrapeAllSources, convertScrapedToStandard } from "./webScraper";
 import { getDb } from "./db";
-import { isoCertifications, searchCache } from "../drizzle/schema";
+import { isoCertifications, searchCache } from "./drizzle/schema";
 import { like, eq } from "drizzle-orm";
 
 export interface CertificationSource {

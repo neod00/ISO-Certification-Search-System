@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import { InsertUser, users, isoCertifications, searchCache, InsertIsoCertification } from "../drizzle/schema";
+import { InsertUser, users, isoCertifications, searchCache, InsertIsoCertification } from "./drizzle/schema";
 import { ENV } from './_core/env';
 
 // Connection pool for serverless environments (Vercel)
