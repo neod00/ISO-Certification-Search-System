@@ -5,9 +5,10 @@
 ## 🌟 주요 기능
 
 - **다중 소스 검색**: KSA, Google News, Naver News, 블로그 등 여러 출처에서 정보 수집
-- **LLM 기반 검색**: AI를 활용한 지능형 검색
-- **데이터베이스 캐싱**: 빠른 응답을 위한 검색 결과 캐싱
-- **다국어 지원**: 한국어/영어 지원
+- **🆕 ChatGPT 뉴스 분석**: GPT-4o-mini를 사용하여 뉴스 본문에서 인증기관 정보 자동 추출 (한국어/영어 자동 지원)
+- **하이브리드 검색**: 즉시 응답 제공 + 백그라운드에서 GPT 분석으로 캐시 개선
+- **데이터베이스 캐싱**: 빠른 응답을 위한 검색 결과 24시간 캐싱
+- **다국어 지원**: 한국어/영어 자동 감지 및 지원
 - **다크 모드**: 라이트/다크 테마 전환 지원
 
 ## 🚀 배포하기
@@ -56,8 +57,11 @@ Netlify 대시보드 → Site settings → Environment variables에서 설정:
   postgresql://postgres.xxx:[password]@xxx.supabase.com:6543/postgres
   ```
 
-**선택 환경 변수:**
-- `LLM_API_KEY`: LLM 서비스 API 키 (OpenAI, Anthropic 등)
+**선택 환경 변수 (권장):**
+- `LLM_API_KEY`: OpenAI API 키 (GPT-4o-mini 사용)
+  - [OpenAI Platform](https://platform.openai.com/api-keys)에서 발급
+  - 뉴스 본문 분석으로 인증기관 정보 정확도 향상
+  - 비용: 약 $0.003-0.005/검색 (매우 저렴)
 
 #### 4. Netlify 최적화 설정
 
@@ -87,7 +91,7 @@ vercel
 Vercel 대시보드에서 다음 환경 변수를 설정:
 
 - `DATABASE_URL`: PostgreSQL 연결 문자열 (Supabase)
-- `LLM_API_KEY`: LLM API 키 (선택)
+- `LLM_API_KEY`: OpenAI API 키 (GPT-4o-mini 사용, 권장)
 
 > **참고**: Vercel은 무료 플랜에서 10초 제한, Pro 플랜($20/월)에서 60초 제한
 

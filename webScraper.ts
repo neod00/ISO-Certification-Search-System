@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { invokeLLM } from "./_core/llm";
 
 export interface ScrapedCertification {
   companyName: string;
@@ -573,5 +574,197 @@ function extractCertBodyFromText(
 ): Array<{ name: string; code?: string }> {
   // extractCertBodyFromTitle와 동일한 로직 사용
   return extractCertBodyFromTitle(text);
+}
+
+/**
+ * ChatGPT를 사용하여 뉴스 본문에서 ISO 인증 정보 추출
+ * 한국어/영어 자동 지원
+ */
+export async function analyzeNewsContentWithGPT(
+  newsUrl: string,
+  companyName: string
+): Promise<ScrapedCertification | null> {
+  try {
+    console.log(`[GPT Analysis] Analyzing news: ${newsUrl}`);
+
+    // 1. 뉴스 본문 가져오기 (3초 타임아웃)
+    const response = await axios.get(newsUrl, {
+      timeout: 3000,
+      headers: {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+      },
+      validateStatus: (status) => status < 500,
+    });
+
+    if (response.status !== 200) {
+      console.log(`[GPT Analysis] HTTP ${response.status} - Skipping`);
+      return null;
+    }
+
+    const $ = cheerio.load(response.data);
+
+    // 2. 본문 추출 (다양한 선택자 시도)
+    let content = "";
+    const contentSelectors = [
+      "article",
+      ".article-body",
+      ".article-content",
+      ".news-content",
+      ".post-content",
+      "#articleBody",
+      ".article_body",
+      "main article",
+      '[itemprop="articleBody"]',
+    ];
+
+    for (const selector of contentSelectors) {
+      const text = $(selector).text().trim();
+      if (text.length > 100) {
+        content = text;
+        break;
+      }
+    }
+
+    // 선택자로 찾지 못하면 body 전체에서 추출
+    if (!content || content.length < 100) {
+      content = $("body").text().trim();
+    }
+
+    // 너무 짧으면 분석 불가
+    if (content.length < 100) {
+      console.log("[GPT Analysis] Content too short, skipping");
+      return null;
+    }
+
+    // 토큰 제한을 위해 최대 3000자로 제한
+    const truncatedContent = content.substring(0, 3000);
+
+    // 3. ChatGPT로 분석 (한국어/영어 자동 지원)
+    const gptResponse = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert at extracting ISO certification information from news articles.
+Extract the following information and return ONLY a valid JSON object (no markdown, no explanation):
+
+{
+  "certificationTypes": ["ISO 9001:2015", "ISO 14001:2015"],
+  "certificationBodies": [
+    {"name": "Korean Standards Association (KSA)", "code": "KSA"},
+    {"name": "TÜV", "code": "TUV"}
+  ],
+  "issuedDate": "YYYY-MM-DD",
+  "expiryDate": "YYYY-MM-DD",
+  "status": "valid"
+}
+
+Rules:
+- certificationTypes: Array of ISO certification numbers (e.g., "ISO 9001:2015")
+- certificationBodies: Array of certification body names (both Korean and English accepted)
+- issuedDate/expiryDate: Use YYYY-MM-DD format if found
+- status: "valid" if currently valid, "expired" if expired, "unknown" if not mentioned
+- Return ONLY the JSON object, nothing else
+- If no certification info found, return: {"certificationTypes": [], "certificationBodies": []}`,
+        },
+        {
+          role: "user",
+          content: `Company: ${companyName}\n\nNews article content:\n${truncatedContent}`,
+        },
+      ],
+      model: "gpt-4o-mini",
+      temperature: 0,
+      max_tokens: 500,
+    });
+
+    const gptContent = gptResponse.choices[0]?.message?.content;
+    if (!gptContent) {
+      console.log("[GPT Analysis] No response from GPT");
+      return null;
+    }
+
+    // 4. JSON 파싱
+    let parsedData: any;
+    try {
+      // JSON 추출 (코드 블록 제거)
+      const jsonMatch = gptContent.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.log("[GPT Analysis] No JSON found in response");
+        return null;
+      }
+
+      parsedData = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error("[GPT Analysis] JSON parse error:", parseError);
+      console.log("[GPT Analysis] Raw response:", gptContent);
+      return null;
+    }
+
+    // 5. 데이터 검증 및 변환
+    if (
+      !parsedData.certificationTypes ||
+      !Array.isArray(parsedData.certificationTypes) ||
+      parsedData.certificationTypes.length === 0
+    ) {
+      console.log("[GPT Analysis] No certification types found");
+      return null;
+    }
+
+    const result: ScrapedCertification = {
+      companyName,
+      certificationTypes: parsedData.certificationTypes,
+      certificationBodies: Array.isArray(parsedData.certificationBodies)
+        ? parsedData.certificationBodies
+        : [],
+      issuedDate: parsedData.issuedDate || undefined,
+      expiryDate: parsedData.expiryDate || undefined,
+      status: parsedData.status || "unknown",
+      source: "Google News (GPT Analysis)",
+      sourceUrl: newsUrl,
+      retrievedAt: new Date().toISOString(),
+    };
+
+    console.log(`[GPT Analysis] Success:`, {
+      certTypes: result.certificationTypes.length,
+      certBodies: result.certificationBodies.length,
+    });
+
+    return result;
+  } catch (error) {
+    console.error("[GPT Analysis] Error:", error instanceof Error ? error.message : String(error));
+    return null;
+  }
+}
+
+/**
+ * 여러 뉴스를 ChatGPT로 분석 (병렬 처리, 최대 3개)
+ */
+export async function analyzeMultipleNewsWithGPT(
+  newsUrls: string[],
+  companyName: string,
+  maxCount: number = 3
+): Promise<ScrapedCertification[]> {
+  const urlsToAnalyze = newsUrls.slice(0, maxCount);
+  
+  console.log(`[GPT Batch Analysis] Analyzing ${urlsToAnalyze.length} news articles`);
+
+  const results = await Promise.allSettled(
+    urlsToAnalyze.map(url => analyzeNewsContentWithGPT(url, companyName))
+  );
+
+  const successfulResults: ScrapedCertification[] = [];
+  
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled" && result.value) {
+      successfulResults.push(result.value);
+    } else if (result.status === "rejected") {
+      console.error(`[GPT Batch Analysis] Failed for URL ${index + 1}:`, result.reason);
+    }
+  });
+
+  console.log(`[GPT Batch Analysis] Completed: ${successfulResults.length}/${urlsToAnalyze.length} successful`);
+
+  return successfulResults;
 }
 

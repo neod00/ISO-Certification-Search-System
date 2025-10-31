@@ -1,5 +1,10 @@
 import { invokeLLM } from "./_core/llm";
-import { scrapeAllSources, convertScrapedToStandard } from "./webScraper";
+import { 
+  scrapeAllSources, 
+  convertScrapedToStandard,
+  analyzeMultipleNewsWithGPT,
+  ScrapedCertification 
+} from "./webScraper";
 import { getDb } from "./db";
 import { isoCertifications, searchCache } from "./drizzle/schema";
 import { like, eq, or } from "drizzle-orm";
@@ -123,7 +128,11 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 }
 
 /**
- * ISO 인증 정보 검색 (캐싱 및 성능 최적화)
+ * ISO 인증 정보 검색 (하이브리드 방식)
+ * 
+ * 방안 3: 하이브리드 접근
+ * 1. 즉시 응답: 캐시 + DB + 기본 스크래핑
+ * 2. 백그라운드: GPT로 뉴스 본문 분석 후 캐시 업데이트
  */
 export async function searchISOCertifications(
   companyName: string
@@ -131,6 +140,11 @@ export async function searchISOCertifications(
   // 1. 캐시에서 먼저 확인
   const cachedResults = await getCachedResult(companyName);
   if (cachedResults) {
+    // 캐시가 있어도 백그라운드에서 업데이트 시도 (비동기, 대기하지 않음)
+    triggerBackgroundGPTAnalysis(companyName).catch(err => {
+      console.error("[Background GPT] Error:", err);
+    });
+    
     return cachedResults;
   }
 
@@ -158,6 +172,14 @@ export async function searchISOCertifications(
   // 5. 결과를 캐시에 저장
   if (mergedResults.length > 0) {
     await cacheResult(companyName, mergedResults);
+  }
+
+  // 6. 백그라운드에서 GPT 분석 시작 (비동기, 대기하지 않음)
+  // 뉴스가 있으면 상위 3개를 GPT로 분석하여 캐시 업데이트
+  if (scrapedResults.length > 0) {
+    triggerBackgroundGPTAnalysis(companyName, scrapedResults).catch(err => {
+      console.error("[Background GPT] Error:", err);
+    });
   }
 
   return mergedResults;
@@ -333,5 +355,91 @@ function mergeResults(results: CertificationInfo[]): CertificationInfo[] {
   return Array.from(merged.values()).sort(
     (a, b) => b.sources.length - a.sources.length
   );
+}
+
+/**
+ * 백그라운드에서 GPT 분석 시작 (비동기, 대기하지 않음)
+ * 
+ * 하이브리드 방식의 핵심: 사용자는 즉시 응답을 받고,
+ * 백그라운드에서 GPT가 뉴스를 분석하여 캐시를 개선
+ */
+async function triggerBackgroundGPTAnalysis(
+  companyName: string,
+  scrapedResults?: CertificationInfo[]
+): Promise<void> {
+  try {
+    console.log(`[Background GPT] Starting analysis for: ${companyName}`);
+
+    // 뉴스 URL 추출
+    let newsUrls: string[] = [];
+    
+    if (scrapedResults && scrapedResults.length > 0) {
+      // 제공된 결과에서 Google News URL만 추출
+      newsUrls = scrapedResults
+        .flatMap(result => result.sources)
+        .filter(source => source.source === "Google News" && source.url)
+        .map(source => source.url)
+        .filter((url, index, self) => self.indexOf(url) === index) // 중복 제거
+        .slice(0, 3); // 최대 3개
+    } else {
+      // 결과가 없으면 새로 스크래핑
+      const freshResults = await scrapeAllSources(companyName);
+      newsUrls = freshResults
+        .filter(result => result.source === "Google News" && result.sourceUrl)
+        .map(result => result.sourceUrl)
+        .filter((url, index, self) => self.indexOf(url) === index)
+        .slice(0, 3);
+    }
+
+    if (newsUrls.length === 0) {
+      console.log("[Background GPT] No news URLs found to analyze");
+      return;
+    }
+
+    console.log(`[Background GPT] Analyzing ${newsUrls.length} news articles`);
+
+    // GPT로 뉴스 분석 (최대 3개)
+    const gptResults = await analyzeMultipleNewsWithGPT(newsUrls, companyName, 3);
+
+    if (gptResults.length === 0) {
+      console.log("[Background GPT] No results from GPT analysis");
+      return;
+    }
+
+    // GPT 결과를 표준 형식으로 변환
+    const gptCertInfo: CertificationInfo[] = gptResults.map(result => ({
+      companyName: result.companyName,
+      certificationTypes: result.certificationTypes,
+      certificationBodies: result.certificationBodies,
+      issuedDate: result.issuedDate,
+      expiryDate: result.expiryDate,
+      status: result.status,
+      sources: [{
+        url: result.sourceUrl,
+        source: result.source,
+        retrievedAt: result.retrievedAt,
+      }],
+    }));
+
+    // 기존 캐시와 병합
+    const existingCache = await getCachedResult(companyName);
+    const allResults = existingCache 
+      ? [...existingCache, ...gptCertInfo]
+      : gptCertInfo;
+
+    // 병합 및 중복 제거
+    const mergedResults = mergeResults(allResults);
+
+    // 캐시 업데이트
+    await cacheResult(companyName, mergedResults);
+
+    console.log(`[Background GPT] Successfully updated cache with ${gptResults.length} GPT-analyzed results`);
+  } catch (error) {
+    console.error(
+      "[Background GPT] Error:",
+      error instanceof Error ? error.message : String(error)
+    );
+    // 백그라운드 작업이므로 에러를 던지지 않음
+  }
 }
 
