@@ -2,7 +2,7 @@ import { invokeLLM } from "./_core/llm";
 import { scrapeAllSources, convertScrapedToStandard } from "./webScraper";
 import { getDb } from "./db";
 import { isoCertifications, searchCache } from "./drizzle/schema";
-import { like, eq } from "drizzle-orm";
+import { like, eq, or } from "drizzle-orm";
 
 export interface CertificationSource {
   url: string;
@@ -185,11 +185,16 @@ async function searchDatabase(companyName: string): Promise<CertificationInfo[]>
     const db = await getDb();
     if (!db) return [];
 
-    // LIKE 쿼리 최적화: 정확한 매칭 우선
+    // LIKE 쿼리: 한국어 회사명과 영어 회사명 모두 검색
     const dbResults = await db
       .select()
       .from(isoCertifications)
-      .where(like(isoCertifications.companyName, `%${companyName}%`))
+      .where(
+        or(
+          like(isoCertifications.companyName, `%${companyName}%`),
+          like(isoCertifications.companyNameEn, `%${companyName}%`)
+        )
+      )
       .limit(20);
 
     return dbResults.map((row) => ({
