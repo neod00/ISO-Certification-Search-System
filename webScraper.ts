@@ -22,14 +22,14 @@ const USER_AGENT =
 
 /**
  * KSA (한국표준협회) 인증기업 검색 스크래핑
- * 더 정확한 CSS 선택자와 에러 처리 강화
+ * 참고: KSA 웹사이트는 동적 콘텐츠와 로그인이 필요할 수 있어 제한적입니다.
  */
 export async function scrapeKSA(companyName: string): Promise<ScrapedCertification[]> {
   try {
     const results: ScrapedCertification[] = [];
 
-    // KSA 인증 검색 API 시도
-    const searchUrl = `https://ksa.or.kr/ksa_kr/876/subview.do`;
+    // KSA 인증현황 페이지 (공개된 정보만 수집 가능)
+    const searchUrl = `https://www.ksa.or.kr/ksa_kr/922/subview.do`;
 
     const response = await axios.get(searchUrl, {
       headers: {
@@ -39,77 +39,38 @@ export async function scrapeKSA(companyName: string): Promise<ScrapedCertificati
         "Accept-Language": "ko-KR,ko;q=0.9",
       },
       timeout: TIMEOUT,
+      validateStatus: (status) => status < 500, // 4xx 에러도 허용
     });
 
-    const $ = cheerio.load(response.data);
-
-    // KSA 페이지 구조 분석 및 데이터 추출
-    // 테이블 또는 리스트 형식의 인증 정보 찾기
-    const certElements = $(
-      "table tbody tr, .cert-list li, .certification-item, [data-certification]"
-    );
-
-    if (certElements.length === 0) {
-      console.log("[KSA Scraper] No certification elements found on page");
+    if (response.status !== 200) {
+      console.log(`[KSA Scraper] HTTP ${response.status} - Skipping`);
       return results;
     }
 
-    certElements.each((_, element) => {
-      const $el = $(element);
+    const $ = cheerio.load(response.data);
 
-      // 회사명 추출 (여러 가능성)
-      const companyText =
-        $el.find("td:nth-child(1), .company-name, [data-company]").text() ||
-        $el.find("strong").first().text() ||
-        "";
-
-      // 인증 종류 추출
-      const certTypeText =
-        $el.find("td:nth-child(2), .cert-type, [data-cert-type]").text() ||
-        $el.find(".iso-type").text() ||
-        "";
-
-      // 인증기관 추출
-      const certBodyText =
-        $el.find("td:nth-child(3), .cert-body, [data-cert-body]").text() ||
-        $el.find(".cert-agency").text() ||
-        "";
-
-      // 발급일 추출
-      const issuedDateText =
-        $el.find("td:nth-child(4), .issued-date, [data-issued]").text() || "";
-
-      // 만료일 추출
-      const expiryDateText =
-        $el.find("td:nth-child(5), .expiry-date, [data-expiry]").text() || "";
-
-      // 회사명 필터링
-      if (
-        !companyText ||
-        !companyText.toLowerCase().includes(companyName.toLowerCase())
-      ) {
-        return;
-      }
-
-      // ISO 인증 종류 추출 (ISO 9001, ISO 14001 등)
-      const isoMatches = certTypeText.match(/ISO\s+\d{4,5}(?::\d{4})?/g) || [];
-
+    // 페이지 전체에서 회사명과 ISO 인증 정보 검색
+    const pageText = $("body").text();
+    
+    // 회사명이 페이지에 포함되어 있는지 확인
+    if (pageText.includes(companyName)) {
+      // ISO 인증 패턴 찾기
+      const isoMatches = pageText.match(/ISO\s+\d{4,5}(?::\d{4})?/g) || [];
+      
       if (isoMatches.length > 0) {
+        const uniqueIsos = Array.from(new Set(isoMatches.map((m) => m.trim())));
+        
         results.push({
-          companyName: companyText.trim(),
-          certificationTypes: isoMatches.map((m) => m.trim()),
-          certificationBodies: certBodyText
-            ? [{ name: certBodyText.trim() }]
-            : [],
-          issuedDate: formatDateString(issuedDateText),
-          expiryDate: formatDateString(expiryDateText),
-          status: determineStatus(expiryDateText),
+          companyName,
+          certificationTypes: uniqueIsos,
+          certificationBodies: [{ name: "한국표준협회(KSA)" }],
+          status: "unknown",
           source: "KSA",
           sourceUrl: searchUrl,
           retrievedAt: new Date().toISOString(),
         });
       }
-    });
+    }
 
     console.log(`[KSA Scraper] Found ${results.length} certifications`);
     return results;
@@ -154,10 +115,15 @@ export async function scrapeGoogleNews(
       const title =
         $article.find("h3, h2, .headline, [data-headline]").text() ||
         $article.text();
-      const url =
+      const relativeUrl =
         $article.find("a").attr("href") ||
         $article.find("[data-url]").attr("data-url") ||
         "";
+      
+      // 상대 경로를 절대 경로로 변환
+      const fullUrl = relativeUrl && relativeUrl.startsWith("./") 
+        ? `https://news.google.com${relativeUrl.substring(1)}` 
+        : relativeUrl || newsUrl;
 
       if (!title || !title.includes("ISO")) {
         return;
@@ -176,7 +142,7 @@ export async function scrapeGoogleNews(
           certificationBodies: extractCertBodyFromTitle(title),
           status: "unknown",
           source: "Google News",
-          sourceUrl: url || newsUrl,
+          sourceUrl: fullUrl,
           retrievedAt: new Date().toISOString(),
         });
       }
@@ -195,6 +161,7 @@ export async function scrapeGoogleNews(
 
 /**
  * Naver 뉴스에서 회사 ISO 인증 정보 검색
+ * 참고: Naver는 bot 차단이 강력하여 제한적일 수 있습니다
  */
 export async function scrapeNaverNews(
   companyName: string
@@ -203,32 +170,41 @@ export async function scrapeNaverNews(
     const results: ScrapedCertification[] = [];
 
     const searchQuery = encodeURIComponent(`${companyName} ISO 인증`);
-    const newsUrl = `https://search.naver.com/search.naver?where=news&query=${searchQuery}`;
+    const newsUrl = `https://search.naver.com/search.naver?where=news&query=${searchQuery}&sort=0`;
 
     const response = await axios.get(newsUrl, {
       headers: {
         "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.naver.com/",
       },
       timeout: TIMEOUT,
+      validateStatus: (status) => status < 500,
     });
+
+    if (response.status !== 200) {
+      console.log(`[Naver News Scraper] HTTP ${response.status} - Skipping`);
+      return results;
+    }
 
     const $ = cheerio.load(response.data);
 
-    // Naver 뉴스 검색 결과 선택자
+    // Naver 뉴스 검색 결과 선택자 업데이트 (2024년 기준)
     const newsItems = $(
-      ".news_item, .news-item, .api_list_item, [data-news-item]"
+      ".news_wrap, .bx, .news_area, article"
     );
 
     newsItems.each((_, element) => {
       const $item = $(element);
 
       const title =
-        $item.find(".news_tit, .title, h3, [data-title]").text() ||
-        $item.find("a").text() ||
+        $item.find(".news_tit, .tit, a.news_tit").text().trim() ||
+        $item.find("a.dsc_txt_wrap").text().trim() ||
         "";
       const url =
-        $item.find(".news_tit, a").attr("href") ||
-        $item.find("[data-url]").attr("data-url") ||
+        $item.find(".news_tit, a.news_tit").attr("href") ||
         "";
 
       if (!title || !title.includes("ISO")) {
@@ -343,6 +319,7 @@ export async function scrapeCompanyWebsite(
 
 /**
  * 네이버 블로그에서 회사 ISO 인증 정보 검색
+ * 참고: Naver는 bot 차단이 강력하여 제한적일 수 있습니다
  */
 export async function scrapeNaverBlog(
   companyName: string
@@ -351,32 +328,40 @@ export async function scrapeNaverBlog(
     const results: ScrapedCertification[] = [];
 
     const searchQuery = encodeURIComponent(`${companyName} ISO 인증`);
-    const blogUrl = `https://section.blog.naver.com/Search/Post.naver?pageNo=1&rangeType=ALL&orderBy=sim&keyword=${searchQuery}`;
+    const blogUrl = `https://search.naver.com/search.naver?where=blog&query=${searchQuery}&sort=0`;
 
     const response = await axios.get(blogUrl, {
       headers: {
         "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.naver.com/",
       },
       timeout: TIMEOUT,
+      validateStatus: (status) => status < 500,
     });
+
+    if (response.status !== 200) {
+      console.log(`[Naver Blog Scraper] HTTP ${response.status} - Skipping`);
+      return results;
+    }
 
     const $ = cheerio.load(response.data);
 
-    // 블로그 포스트 선택자
+    // 블로그 검색 결과 선택자 업데이트 (2024년 기준)
     const posts = $(
-      ".post_item, .blog_item, [data-post-item], .search_result_item"
+      ".bx, .total_wrap, .api_ani_send, .detail_box"
     );
 
     posts.each((_, element) => {
       const $post = $(element);
 
       const title =
-        $post.find(".post_tit, .title, h3, [data-title]").text() ||
-        $post.find("a").text() ||
+        $post.find(".title_link, .total_tit, a.api_txt_lines").text().trim() ||
         "";
       const url =
-        $post.find(".post_tit, a").attr("href") ||
-        $post.find("[data-url]").attr("data-url") ||
+        $post.find(".title_link, a.api_txt_lines").attr("href") ||
         "";
 
       if (!title || !title.includes("ISO")) {
